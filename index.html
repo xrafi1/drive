@@ -115,25 +115,45 @@
                  alt="MANAS ACADEMY Logo" 
                  class="mx-auto h-20 w-auto mb-6">
 
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3">
-                Examination Results
+            <h2 id="statusMessage" class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3">
+                Sign in to View Results
             </h2>
             <p class="text-lg text-gray-600 mb-8">
-                Access your academic performance records securely. Click the button below to proceed to the result checking system.
+                Access your academic performance records securely. Please sign in with your Google account.
             </p>
 
-            <!-- CTA Button -->
-            <button id="checkResultButton" 
-                    class="w-full sm:w-auto px-10 py-4 bg-primary text-white font-bold rounded-xl shadow-lg 
-                           hover:bg-primarydark transition duration-300 transform hover:translate-y-[-2px] 
-                           focus:outline-none focus:ring-4 focus:ring-primary/50 text-xl tracking-wider mb-8"> 
-                Check Result Now
-            </button>
+            <!-- Authentication/Action Container -->
+            <div id="auth-container">
+                <!-- Google Sign-In Button (Initial state: Visible) -->
+                <button id="googleSignInButton" 
+                        class="w-full sm:w-auto px-10 py-4 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl shadow-lg 
+                               hover:bg-gray-50 transition duration-300 transform hover:translate-y-[-2px] 
+                               focus:outline-none focus:ring-4 focus:ring-gray-300/50 text-xl tracking-wider flex items-center justify-center mx-auto">
+                    <!-- Google Icon SVG -->
+                    <svg class="w-6 h-6 mr-3" viewBox="0 0 48 48">
+                        <path fill="#4285F4" d="M24 10.2c3.48 0 5.8 1.43 7.18 2.76l5.08-5.08C33.72 4.7 29.28 3 24 3 14.63 3 6.64 8.24 3.75 16.03l5.88 4.54C11.3 14.7 17.06 10.2 24 10.2z"/>
+                        <path fill="#34A853" d="M44.5 24c0-1.87-.16-3.4-.42-4.8H24v9.1h11.83c-.49 2.5-1.92 4.47-3.9 5.86l5.08 4.08C42.02 33.15 44.5 28.71 44.5 24z"/>
+                        <path fill="#FBBC05" d="M12.9 28.7c-.5-1.53-.78-3.15-.78-4.7s.28-3.17.78-4.7l-5.88-4.54C6.64 15.22 5 19.46 5 24c0 4.54 1.64 8.78 4.02 11.96l5.88-4.54c-.5-1.53-.78-3.15-.78-4.7z"/>
+                        <path fill="#EA4335" d="M24 43c5.38 0 9.94-1.78 13.25-4.83l-5.08-4.08c-1.8 1.15-4.04 1.84-6.17 1.84-6.94 0-12.7-4.5-14.83-10.79l-5.88 4.54C6.64 39.76 14.63 43 24 43z"/>
+                    </svg>
+                    Sign in with Google
+                </button>
 
-            <!-- New Checkmark Lottie Animation (Placed below the check button) -->
+                <!-- CTA Button (Initial state: Hidden) -->
+                <button id="checkResultButton" 
+                        style="display: none;"
+                        class="w-full sm:w-auto px-10 py-4 bg-primary text-white font-bold rounded-xl shadow-lg 
+                               hover:bg-primarydark transition duration-300 transform hover:translate-y-[-2px] 
+                               focus:outline-none focus:ring-4 focus:ring-primary/50 text-xl tracking-wider"> 
+                    Check Result Now
+                </button>
+            </div>
+
+
+            <!-- Checkmark Lottie Animation -->
             <dotlottie-wc src="https://lottie.host/419ce1b9-b10c-4564-9282-c95bd616f967/VSXvQ0yKHl.lottie" 
                           style="width: 150px; height: 150px" 
-                          class="mx-auto"
+                          class="mx-auto mt-8"
                           autoplay loop>
             </dotlottie-wc>
 
@@ -186,76 +206,161 @@
         </div>
     </div>
 
-    <script>
-        const checkResultButton = document.getElementById('checkResultButton');
-        const embedModal = document.getElementById('embed-modal');
-        const closeModalButton = document.getElementById('closeModalButton');
-        const resultIframe = document.getElementById('resultIframe');
-        const loadingIndicator = document.getElementById('loadingIndicator');
+    <!-- Firebase and Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
-        const targetUrl = "https://result.edumark.site";
-
-        /**
-         * Opens the modal and loads the external URL into the iframe.
-         */
-        function openModal() {
-            // Show loading indicator
-            loadingIndicator.classList.remove('opacity-0', 'invisible');
-            resultIframe.classList.add('opacity-0');
-
-            // Set the iframe source to the required URL
-            resultIframe.src = targetUrl;
-            
-            // Make the modal visible and opaque
-            embedModal.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
-            embedModal.classList.add('opacity-100', 'pointer-events-auto');
-            
-            // Optional: Disable scrolling on the body when modal is open
-            document.body.style.overflow = 'hidden';
-            console.log(`Loading external result page: ${targetUrl}`);
-        }
-
-        /**
-         * Closes the modal and resets the iframe source (to stop any ongoing processes).
-         */
-        function closeModal() {
-            // Hide the modal
-            embedModal.classList.remove('opacity-100', 'pointer-events-auto');
-            embedModal.classList.add('opacity-0', 'invisible', 'pointer-events-none');
-            
-            // Hide loading indicator and clear source
-            loadingIndicator.classList.add('opacity-0', 'invisible');
-            resultIframe.classList.add('opacity-0');
-            resultIframe.src = "about:blank";
-
-            // Optional: Re-enable scrolling on the body
-            document.body.style.overflow = '';
-            console.log('Result modal closed.');
-        }
-
-        // Hide loading indicator once the iframe content has loaded
-        resultIframe.onload = function() {
-            loadingIndicator.classList.add('opacity-0', 'invisible');
-            resultIframe.classList.remove('opacity-0');
+        // Provided Firebase Config
+        const firebaseConfig = {
+          apiKey: "AIzaSyADMnb-g9z76CxNGlmNsMPxFQ5Zge91WN8",
+          authDomain: "pvtschool-48c32.firebaseapp.com",
+          projectId: "pvtschool-48c32",
+          storageBucket: "pvtschool-48c32.firebasestorage.app",
+          messagingSenderId: "531940116523",
+          appId: "1:531940116523:web:4cbe6b748b14ce492a426e",
+          measurementId: "G-KHXPMWXC5F"
         };
 
-        // Event listeners
-        checkResultButton.addEventListener('click', openModal);
-        closeModalButton.addEventListener('click', closeModal);
+        // Initialize Firebase
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const googleProvider = new GoogleAuthProvider();
+            console.log("Firebase initialized successfully.");
 
-        // Close modal if user clicks outside the content (on the overlay itself)
-        embedModal.addEventListener('click', (e) => {
-            if (e.target === embedModal) {
-                closeModal();
-            }
-        });
+            // DOM elements
+            const checkResultButton = document.getElementById('checkResultButton');
+            const embedModal = document.getElementById('embed-modal');
+            const closeModalButton = document.getElementById('closeModalButton');
+            const resultIframe = document.getElementById('resultIframe');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const googleSignInButton = document.getElementById('googleSignInButton');
+            const statusMessage = document.getElementById('statusMessage');
 
-        // Close modal using the Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && embedModal.classList.contains('opacity-100')) {
-                closeModal();
+            const targetUrl = "https://result.edumark.site";
+
+            // --- Authentication Handlers ---
+
+            // Google Sign In Handler
+            googleSignInButton.addEventListener('click', async () => {
+                try {
+                    console.log("Attempting Google Sign-In...");
+                    // This uses a pop-up window for sign-in
+                    const result = await signInWithPopup(auth, googleProvider);
+                    const user = result.user;
+                    console.log("User signed in:", user.email);
+                    // UI update is handled by onAuthStateChanged
+                } catch (error) {
+                    console.error("Google Sign-In Error:", error.code, error.message);
+                    
+                    // Specific error handling for pop-up closed/blocked
+                    if (error.code === 'auth/popup-closed-by-user') {
+                        statusMessage.textContent = "Sign-in cancelled. Please try again.";
+                    } else if (error.code === 'auth/popup-blocked') {
+                        statusMessage.textContent = "Pop-up blocked. Please allow pop-ups for this site.";
+                    } else {
+                        statusMessage.textContent = "Authentication Failed. Please check your connection and try again.";
+                    }
+                    statusMessage.classList.add('text-primary'); // Highlight error message
+                }
+            });
+
+            // Auth State Listener: Manages UI based on sign-in status
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // User is signed in
+                    googleSignInButton.style.display = 'none';
+                    checkResultButton.style.display = 'inline-block';
+                    // Display customized welcome message
+                    const displayName = user.displayName ? user.displayName.split(' ')[0] : user.email;
+                    statusMessage.innerHTML = `Welcome back, <span class="text-primary">${displayName}!</span>`;
+                    statusMessage.classList.remove('text-primary'); // Clear error highlight
+                    document.querySelector('p.text-lg').textContent = "You are now verified. Click below to view your official results.";
+                } else {
+                    // User is signed out
+                    googleSignInButton.style.display = 'block';
+                    checkResultButton.style.display = 'none';
+                    statusMessage.textContent = "Sign in to View Results";
+                    document.querySelector('p.text-lg').textContent = "Access your academic performance records securely. Please sign in with your Google account.";
+                }
+            });
+
+            // --- Modal Functions (Preserved) ---
+
+            /**
+             * Opens the modal and loads the external URL into the iframe.
+             */
+            function openModal() {
+                // Ensure user is signed in before opening the modal
+                if (!auth.currentUser) {
+                    console.warn("Attempted to open modal without signing in.");
+                    // In a real app, you might show a persistent sign-in reminder here.
+                    statusMessage.textContent = "Please sign in first to check results.";
+                    return;
+                }
+
+                // Show loading indicator
+                loadingIndicator.classList.remove('opacity-0', 'invisible');
+                resultIframe.classList.add('opacity-0');
+
+                // Set the iframe source to the required URL
+                resultIframe.src = targetUrl;
+                
+                // Make the modal visible and opaque
+                embedModal.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
+                embedModal.classList.add('opacity-100', 'pointer-events-auto');
+                
+                // Optional: Disable scrolling on the body when modal is open
+                document.body.style.overflow = 'hidden';
+                console.log(`Loading external result page: ${targetUrl}`);
             }
-        });
+
+            /**
+             * Closes the modal and resets the iframe source (to stop any ongoing processes).
+             */
+            function closeModal() {
+                // Hide the modal
+                embedModal.classList.remove('opacity-100', 'pointer-events-auto');
+                embedModal.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+                
+                // Hide loading indicator and clear source
+                loadingIndicator.classList.add('opacity-0', 'invisible');
+                resultIframe.classList.add('opacity-0');
+                resultIframe.src = "about:blank";
+
+                // Optional: Re-enable scrolling on the body
+                document.body.style.overflow = '';
+                console.log('Result modal closed.');
+            }
+
+            // Hide loading indicator once the iframe content has loaded
+            resultIframe.onload = function() {
+                loadingIndicator.classList.add('opacity-0', 'invisible');
+                resultIframe.classList.remove('opacity-0');
+            };
+
+            // Event listeners
+            checkResultButton.addEventListener('click', openModal);
+            closeModalButton.addEventListener('click', closeModal);
+
+            // Close modal if user clicks outside the content (on the overlay itself)
+            embedModal.addEventListener('click', (e) => {
+                if (e.target === embedModal) {
+                    closeModal();
+                }
+            });
+
+            // Close modal using the Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && embedModal.classList.contains('opacity-100')) {
+                    closeModal();
+                }
+            });
+
+        } catch (e) {
+            console.error("Critical Firebase Initialization Error:", e);
+        }
 
     </script>
 </body>
